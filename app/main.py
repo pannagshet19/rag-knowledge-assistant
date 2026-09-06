@@ -1,6 +1,7 @@
 from app.ingestion.text_loader import load_text
 from app.ingestion.section_parser import parse_sections
 from app.ingestion.chunker import chunk_sections
+from app.ingestion.document_repository import save_document_with_chunks
 
 
 def main():
@@ -14,6 +15,8 @@ def main():
         chunk_size=200,
         overlap=0,
     )
+
+    save_document_with_chunks(document, chunks)
 
     print(f"Document ID: {document.document_id}")
     print(f"Number of sections: {len(sections)}")
