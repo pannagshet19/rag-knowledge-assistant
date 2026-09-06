@@ -5,6 +5,7 @@ from app.ingestion.models import Chunk, Section
 
 def chunk_sections(
     sections: List[Section],
+    document_id: str,
     chunk_size: int,
     overlap: int,
 ) -> List[Chunk]:
@@ -21,6 +22,7 @@ def chunk_sections(
     chunks = []
 
     for section in sections:
+
         section_text = section.title
 
         if section.content:
@@ -33,18 +35,23 @@ def chunk_sections(
                     text=section_text,
                     metadata={
                         "section": section.title,
-                        "position": str(len(chunks)),
                     },
+                    document_id=document_id,
+                    chunk_index=len(chunks),
                 )
             )
+
             continue
 
         # Section is larger than chunk_size.
+        # Section is split by paragraphs while keeping title.
+
         paragraphs = section.content.split("\n\n")
 
         current_chunk = section.title
 
         for paragraph in paragraphs:
+
             candidate = current_chunk + "\n\n" + paragraph
 
             if len(candidate) <= chunk_size:
@@ -56,13 +63,12 @@ def chunk_sections(
                         text=current_chunk,
                         metadata={
                             "section": section.title,
-                            "position": str(len(chunks)),
                         },
+                        document_id=document_id,
+                        chunk_index=len(chunks),
                     )
                 )
 
-                # Take the last `overlap` characters
-                # from the previous chunk.
                 overlap_text = (
                     current_chunk[-overlap:]
                     if overlap > 0
@@ -82,8 +88,9 @@ def chunk_sections(
                     text=current_chunk,
                     metadata={
                         "section": section.title,
-                        "position": str(len(chunks)),
                     },
+                    document_id=document_id,
+                    chunk_index=len(chunks),
                 )
             )
 

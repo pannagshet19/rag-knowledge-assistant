@@ -4,6 +4,9 @@ from app.ingestion.chunker import chunk_sections
 from app.ingestion.models import Chunk, Section
 
 
+DOCUMENT_ID = "test-document-id"
+
+
 def test_section_that_fits_in_one_chunk():
     sections = [
         Section(
@@ -14,6 +17,7 @@ def test_section_that_fits_in_one_chunk():
 
     chunks = chunk_sections(
         sections,
+        document_id=DOCUMENT_ID,
         chunk_size=200,
         overlap=0,
     )
@@ -38,6 +42,7 @@ def test_multiple_sections_create_multiple_chunks():
 
     chunks = chunk_sections(
         sections,
+        document_id=DOCUMENT_ID,
         chunk_size=200,
         overlap=0,
     )
@@ -57,6 +62,7 @@ def test_section_title_stays_with_content():
 
     chunks = chunk_sections(
         sections,
+        document_id=DOCUMENT_ID,
         chunk_size=200,
         overlap=0,
     )
@@ -77,6 +83,7 @@ def test_invalid_chunk_size():
     with pytest.raises(ValueError):
         chunk_sections(
             sections,
+            document_id=DOCUMENT_ID,
             chunk_size=0,
             overlap=0,
         )
@@ -93,6 +100,7 @@ def test_negative_overlap():
     with pytest.raises(ValueError):
         chunk_sections(
             sections,
+            document_id=DOCUMENT_ID,
             chunk_size=200,
             overlap=-1,
         )
@@ -109,6 +117,7 @@ def test_overlap_cannot_equal_chunk_size():
     with pytest.raises(ValueError):
         chunk_sections(
             sections,
+            document_id=DOCUMENT_ID,
             chunk_size=100,
             overlap=100,
         )
@@ -128,6 +137,7 @@ def test_chunks_have_overlap():
 
     chunks = chunk_sections(
         sections,
+        document_id=DOCUMENT_ID,
         chunk_size=100,
         overlap=30,
     )
@@ -147,6 +157,7 @@ def test_chunk_contains_metadata():
 
     chunks = chunk_sections(
         sections,
+        document_id=DOCUMENT_ID,
         chunk_size=200,
         overlap=0,
     )
@@ -155,7 +166,7 @@ def test_chunk_contains_metadata():
     assert chunks[0].metadata["section"] == "Annual Leave"
 
 
-def test_chunk_has_position_metadata():
+def test_chunk_has_identity():
     sections = [
         Section(
             title="Annual Leave",
@@ -169,9 +180,15 @@ def test_chunk_has_position_metadata():
 
     chunks = chunk_sections(
         sections,
+        document_id=DOCUMENT_ID,
         chunk_size=200,
         overlap=0,
     )
 
-    assert chunks[0].metadata["position"] == "0"
-    assert chunks[1].metadata["position"] == "1"
+    assert chunks[0].document_id == DOCUMENT_ID
+    assert chunks[1].document_id == DOCUMENT_ID
+
+    assert chunks[0].chunk_index == 0
+    assert chunks[1].chunk_index == 1
+
+    assert chunks[0].chunk_id != chunks[1].chunk_id

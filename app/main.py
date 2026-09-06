@@ -10,16 +10,20 @@ def main():
 
     chunks = chunk_sections(
         sections,
+        document_id=document.document_id,
         chunk_size=200,
         overlap=0,
     )
 
+    print(f"Document ID: {document.document_id}")
     print(f"Number of sections: {len(sections)}")
     print(f"Number of chunks: {len(chunks)}")
 
-    for i, chunk in enumerate(chunks):
-        print(f"\n--- Chunk {i + 1} ---")
-        print(chunk)
+    for chunk in chunks:
+        print(f"\n--- Chunk {chunk.chunk_index} ---")
+        print(f"Chunk ID: {chunk.chunk_id}")
+        print(f"Document ID: {chunk.document_id}")
+        print(chunk.text)
 
 
 if __name__ == "__main__":
