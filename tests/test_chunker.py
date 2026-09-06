@@ -1,7 +1,7 @@
 import pytest
 
 from app.ingestion.chunker import chunk_sections
-from app.ingestion.models import Section
+from app.ingestion.models import Chunk, Section
 
 
 def test_section_that_fits_in_one_chunk():
@@ -19,8 +19,9 @@ def test_section_that_fits_in_one_chunk():
     )
 
     assert len(chunks) == 1
-    assert "Annual Leave" in chunks[0]
-    assert "20 days" in chunks[0]
+    assert isinstance(chunks[0], Chunk)
+    assert "Annual Leave" in chunks[0].text
+    assert "20 days" in chunks[0].text
 
 
 def test_multiple_sections_create_multiple_chunks():
@@ -42,8 +43,8 @@ def test_multiple_sections_create_multiple_chunks():
     )
 
     assert len(chunks) == 2
-    assert "Annual Leave" in chunks[0]
-    assert "Sick Leave" in chunks[1]
+    assert "Annual Leave" in chunks[0].text
+    assert "Sick Leave" in chunks[1].text
 
 
 def test_section_title_stays_with_content():
@@ -61,8 +62,8 @@ def test_section_title_stays_with_content():
     )
 
     assert len(chunks) == 1
-    assert chunks[0].startswith("Remote Work")
-    assert "3 days per week" in chunks[0]
+    assert chunks[0].text.startswith("Remote Work")
+    assert "3 days per week" in chunks[0].text
 
 
 def test_invalid_chunk_size():
@@ -133,6 +134,44 @@ def test_chunks_have_overlap():
 
     assert len(chunks) > 1
 
-    # The last 30 characters of the first chunk
-    # should appear in the second chunk.
-    assert chunks[0][-30:] in chunks[1]
+    assert chunks[0].text[-30:] in chunks[1].text
+
+
+def test_chunk_contains_metadata():
+    sections = [
+        Section(
+            title="Annual Leave",
+            content="Employees receive 20 days of annual leave.",
+        )
+    ]
+
+    chunks = chunk_sections(
+        sections,
+        chunk_size=200,
+        overlap=0,
+    )
+
+    assert "section" in chunks[0].metadata
+    assert chunks[0].metadata["section"] == "Annual Leave"
+
+
+def test_chunk_has_position_metadata():
+    sections = [
+        Section(
+            title="Annual Leave",
+            content="Employees receive 20 days of annual leave.",
+        ),
+        Section(
+            title="Sick Leave",
+            content="Employees can take sick leave when they are ill.",
+        ),
+    ]
+
+    chunks = chunk_sections(
+        sections,
+        chunk_size=200,
+        overlap=0,
+    )
+
+    assert chunks[0].metadata["position"] == "0"
+    assert chunks[1].metadata["position"] == "1"

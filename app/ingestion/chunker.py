@@ -1,13 +1,13 @@
 from typing import List
 
-from app.ingestion.models import Section
+from app.ingestion.models import Chunk, Section
 
 
 def chunk_sections(
     sections: List[Section],
     chunk_size: int,
     overlap: int,
-) -> List[str]:
+) -> List[Chunk]:
 
     if chunk_size <= 0:
         raise ValueError("chunk_size must be greater than 0")
@@ -28,7 +28,15 @@ def chunk_sections(
 
         # Section fits completely in one chunk.
         if len(section_text) <= chunk_size:
-            chunks.append(section_text)
+            chunks.append(
+                Chunk(
+                    text=section_text,
+                    metadata={
+                        "section": section.title,
+                        "position": str(len(chunks)),
+                    },
+                )
+            )
             continue
 
         # Section is larger than chunk_size.
@@ -43,7 +51,15 @@ def chunk_sections(
                 current_chunk = candidate
 
             else:
-                chunks.append(current_chunk)
+                chunks.append(
+                    Chunk(
+                        text=current_chunk,
+                        metadata={
+                            "section": section.title,
+                            "position": str(len(chunks)),
+                        },
+                    )
+                )
 
                 # Take the last `overlap` characters
                 # from the previous chunk.
@@ -61,6 +77,14 @@ def chunk_sections(
                 )
 
         if current_chunk:
-            chunks.append(current_chunk)
+            chunks.append(
+                Chunk(
+                    text=current_chunk,
+                    metadata={
+                        "section": section.title,
+                        "position": str(len(chunks)),
+                    },
+                )
+            )
 
     return chunks

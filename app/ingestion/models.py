@@ -6,3 +6,15 @@ from typing import Dict
 class Document:
     text: str
     metadata: Dict[str, str]
+
+
+@dataclass
+class Section:
+    title: str
+    content: str
+
+
+@dataclass
+class Chunk:
+    text: str
+    metadata: Dict[str, str]
