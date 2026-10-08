@@ -11,9 +11,11 @@ class QdrantStore:
         self._create_collection()
 
     def _create_collection(self):
+
         collections = self.client.get_collections().collections
 
         if self.collection_name not in [c.name for c in collections]:
+
             self.client.create_collection(
                 collection_name=self.collection_name,
                 vectors_config=VectorParams(
@@ -23,6 +25,7 @@ class QdrantStore:
             )
 
     def add_vector(self, vector, chunk):
+
         point = PointStruct(
             id=chunk.chunk_id,
             vector=vector,
@@ -39,7 +42,7 @@ class QdrantStore:
             points=[point],
         )
 
-    def search(self, query_vector, limit: int = 3):
+    def search(self, query_vector, limit=3):
 
         results = self.client.query_points(
             collection_name=self.collection_name,
